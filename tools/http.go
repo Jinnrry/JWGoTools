@@ -26,6 +26,7 @@ type Response struct {
 	Headers map[string][]string
 	Status  int
 	Body    string
+	Cookies []http.Cookie
 }
 
 func GET(requestBuild RequestBuild) (Response, error) {
@@ -89,10 +90,17 @@ func GET(requestBuild RequestBuild) (Response, error) {
 
 	defer resp.Body.Close()
 
+	var cookies []http.Cookie = make([]http.Cookie, len(resp.Cookies()))
+
+	for k, v := range resp.Cookies() {
+		cookies[k] = *v
+	}
+
 	response := Response{
 		Body:    string(body),
 		Status:  resp.StatusCode,
 		Headers: resp.Header,
+		Cookies: append(cookies, requestBuild.Cookies...),
 	}
 
 	return response, err
@@ -138,7 +146,7 @@ func POST(requestBuild RequestBuild) (Response, error) {
 	request, _ := http.NewRequest("POST", requestBuild.RequestUrl, strings.NewReader(requestBuild.Parameter.Encode()))
 
 	request.Header.Set("User-Agent", requestBuild.Ua)
-	request.Header.Set("Content-Type","application/x-www-form-urlencoded")
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	for k, v := range requestBuild.Headers {
 		request.Header.Set(k, v)
 	}
@@ -159,10 +167,17 @@ func POST(requestBuild RequestBuild) (Response, error) {
 
 	defer resp.Body.Close()
 
+	var cookies []http.Cookie = make([]http.Cookie, len(resp.Cookies()))
+
+	for k, v := range resp.Cookies() {
+		cookies[k] = *v
+	}
+
 	response := Response{
 		Body:    string(body),
 		Status:  resp.StatusCode,
 		Headers: resp.Header,
+		Cookies: append(cookies, requestBuild.Cookies...),
 	}
 
 	return response, err
